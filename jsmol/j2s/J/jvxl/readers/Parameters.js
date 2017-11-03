@@ -512,6 +512,7 @@ this.mappedDataMin = -1;
 this.mappedDataMax = 1;
 }if (this.mappedDataMin == 3.4028235E38 || this.mappedDataMin == this.mappedDataMax) {
 var minMax = surfaceReader.getMinMaxMappedValues (haveData);
+System.out.println ("parameters - setmapranges " + minMax[0] + " " + minMax[1]);
 this.mappedDataMin = minMax[0];
 this.mappedDataMax = minMax[1];
 }if (this.mappedDataMin == 0 && this.mappedDataMax == 0) {

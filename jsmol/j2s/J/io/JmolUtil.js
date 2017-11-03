@@ -47,7 +47,7 @@ var doCombine = (subFilePtr == 1);
 htParams.put ("zipSet", fileName);
 var subFileList = htParams.get ("subFileList");
 if (subFileList == null) subFileList = this.getSpartanSubfiles (zipDirectory);
-var subFileName = (subFileList == null || subFilePtr >= subFileList.length ? null : subFileList[subFilePtr]);
+var subFileName = (subFileList == null || subFilePtr >= subFileList.length ? htParams.get ("SubFileName") : subFileList[subFilePtr]);
 if (subFileName != null && (subFileName.startsWith ("/") || subFileName.startsWith ("\\"))) subFileName = subFileName.substring (1);
 var selectedFile = 0;
 if (subFileName == null && htParams.containsKey ("modelNumber")) {
@@ -65,12 +65,13 @@ var exceptFiles = (manifest.indexOf ("EXCEPT_FILES") >= 0);
 if (selectAll || subFileName != null) haveManifest = false;
 if (useFileManifest && haveManifest) {
 var path = JV.FileManager.getManifestScriptPath (manifest);
-if (path != null) return "NOTE: file recognized as a script file: " + fileName + path + "\n";
-}var vCollections =  new JU.Lst ();
+if (path != null) {
+return "NOTE: file recognized as a script file: " + fileName + path + "\n";
+}}var vCollections =  new JU.Lst ();
 var htCollections = (haveManifest ?  new java.util.Hashtable () : null);
 var nFiles = 0;
 try {
-var spartanData = (this.isSpartanZip (zipDirectory) ? vwr.fm.getJmb ().getSpartanData (is, zipDirectory) : null);
+var spartanData = (this.isSpartanZip (zipDirectory) ? vwr.fm.spartanUtil ().getData (is, zipDirectory) : null);
 var zpt = vwr.getJzt ();
 var ret;
 if (spartanData != null) {
@@ -124,7 +125,7 @@ return bis;
 var sData;
 if (JU.Rdr.isCompoundDocumentB (bytes)) {
 var jd = J.api.Interface.getInterface ("JU.CompoundDocument", vwr, "file");
-jd.setStream (zpt, JU.Rdr.getBIS (bytes), true);
+jd.setDocStream (zpt, JU.Rdr.getBIS (bytes));
 sData = jd.getAllDataFiles ("Molecule", "Input").toString ();
 } else {
 sData = JU.Rdr.fixUTF (bytes);

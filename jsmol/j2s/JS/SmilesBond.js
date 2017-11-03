@@ -180,10 +180,10 @@ Clazz.overrideMethod (c$, "getCovalentOrder",
 function () {
 return this.order;
 });
-Clazz.overrideMethod (c$, "getOtherAtomNode", 
+Clazz.overrideMethod (c$, "getOtherNode", 
 function (atom) {
-return (atom === this.atom1 ? this.atom2 : atom === this.atom2 ? this.atom1 : null);
-}, "JU.Node");
+return (atom === this.atom1 ? this.atom2 : atom === this.atom2 || atom == null ? this.atom1 : null);
+}, "JU.SimpleNode");
 Clazz.overrideMethod (c$, "isCovalent", 
 function () {
 return this.order != 112;

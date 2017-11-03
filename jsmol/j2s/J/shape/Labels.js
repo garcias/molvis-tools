@@ -246,6 +246,7 @@ Clazz.defineMethod (c$, "setPymolLabels",
  function (labels, bsSelected) {
 this.setScaling ();
 var n = this.checkStringLength (this.ac);
+this.checkColixLength (-1, n);
 for (var i = bsSelected.nextSetBit (0); i >= 0 && i < n; i = bsSelected.nextSetBit (i + 1)) this.setPymolLabel (i, labels.get (Integer.$valueOf (i)), null);
 
 }, "java.util.Map,JU.BS");

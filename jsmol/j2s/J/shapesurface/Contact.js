@@ -312,7 +312,7 @@ default:
 }
 }
 }
-for (var i = bsBad.length (); --i >= 0; ) if (bsBad.get (i)) list.remove (i);
+for (var i = bsBad.length (); --i >= 0; ) if (bsBad.get (i)) list.removeItemAt (i);
 
 if (JU.Logger.debugging) for (var i = 0; i < list.size (); i++) JU.Logger.debug (list.get (i).toString ());
 
@@ -325,7 +325,7 @@ if (atomA.mi != atomB.mi) return false;
 if (atomA.isCovalentlyBonded (atomB)) return true;
 var bondsOther = atomB.bonds;
 var bonds = atomA.bonds;
-for (var i = 0; i < bondsOther.length; i++) {
+if (bondsOther != null && bonds != null) for (var i = 0; i < bondsOther.length; i++) {
 var atom2 = bondsOther[i].getOtherAtom (atomB);
 if (atomA.isCovalentlyBonded (atom2)) return true;
 for (var j = 0; j < bonds.length; j++) if (bonds[j].getOtherAtom (atomA).isCovalentlyBonded (atom2)) return true;

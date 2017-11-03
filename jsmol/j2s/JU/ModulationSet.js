@@ -162,19 +162,19 @@ this.ptTemp.scale (this.$scale * scale);
 if (a != null) {
 this.symmetry.toCartesian (this.ptTemp, true);
 a.add (this.ptTemp);
-}if (this.mxyz != null) this.setVib (isReset);
+}if (this.mxyz != null) this.setVib (isReset, scale);
 }, "JU.T3,~N");
 Clazz.defineMethod (c$, "setVib", 
- function (isReset) {
+ function (isReset, scale) {
 this.vib.setT (this.v0);
 if (isReset) return;
 this.ptTemp.setT (this.mxyz);
-this.ptTemp.scale (this.$scale * this.$scale);
+this.ptTemp.scale (this.$scale * scale);
 this.symmetry.toCartesian (this.ptTemp, true);
 JU.PT.fixPtFloats (this.ptTemp, 10000.0);
 this.ptTemp.scale (this.vib.modScale);
 this.vib.add (this.ptTemp);
-}, "~B");
+}, "~B,~N");
 Clazz.overrideMethod (c$, "getState", 
 function () {
 var s = "";

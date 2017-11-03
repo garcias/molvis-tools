@@ -14,7 +14,7 @@ return this.reader.readLine ();
 });
 c$.readCifData = Clazz.defineMethod (c$, "readCifData", 
 function (parser, br) {
-return parser.set (null, br).getAllCifData ();
+return parser.set (null, br, false).getAllCifData ();
 }, "javajs.api.GenericCifDataParser,java.io.BufferedReader");
 c$.fixUTF = Clazz.defineMethod (c$, "fixUTF", 
 function (bytes) {
@@ -80,10 +80,18 @@ c$.isCompoundDocumentB = Clazz.defineMethod (c$, "isCompoundDocumentB",
 function (bytes) {
 return (bytes.length >= 8 && (bytes[0] & 0xFF) == 0xD0 && (bytes[1] & 0xFF) == 0xCF && (bytes[2] & 0xFF) == 0x11 && (bytes[3] & 0xFF) == 0xE0 && (bytes[4] & 0xFF) == 0xA1 && (bytes[5] & 0xFF) == 0xB1 && (bytes[6] & 0xFF) == 0x1A && (bytes[7] & 0xFF) == 0xE1);
 }, "~A");
+c$.isBZip2S = Clazz.defineMethod (c$, "isBZip2S", 
+function (is) {
+return JU.Rdr.isBZip2B (JU.Rdr.getMagic (is, 3));
+}, "java.io.InputStream");
 c$.isGzipS = Clazz.defineMethod (c$, "isGzipS", 
 function (is) {
 return JU.Rdr.isGzipB (JU.Rdr.getMagic (is, 2));
 }, "java.io.InputStream");
+c$.isBZip2B = Clazz.defineMethod (c$, "isBZip2B", 
+function (bytes) {
+return (bytes != null && bytes.length >= 3 && (bytes[0] & 0xFF) == 0x42 && (bytes[1] & 0xFF) == 0x5A && (bytes[2] & 0xFF) == 0x68);
+}, "~A");
 c$.isGzipB = Clazz.defineMethod (c$, "isGzipB", 
 function (bytes) {
 return (bytes != null && bytes.length >= 2 && (bytes[0] & 0xFF) == 0x1F && (bytes[1] & 0xFF) == 0x8B);
@@ -170,6 +178,12 @@ return  new java.io.BufferedReader ( new java.io.StringReader (string));
 c$.getUnzippedInputStream = Clazz.defineMethod (c$, "getUnzippedInputStream", 
 function (jzt, bis) {
 while (JU.Rdr.isGzipS (bis)) bis =  new java.io.BufferedInputStream (jzt.newGZIPInputStream (bis));
+
+return bis;
+}, "javajs.api.GenericZipTools,java.io.BufferedInputStream");
+c$.getUnzippedInputStreamBZip2 = Clazz.defineMethod (c$, "getUnzippedInputStreamBZip2", 
+function (jzt, bis) {
+while (JU.Rdr.isBZip2S (bis)) bis =  new java.io.BufferedInputStream (jzt.newBZip2InputStream (bis));
 
 return bis;
 }, "javajs.api.GenericZipTools,java.io.BufferedInputStream");

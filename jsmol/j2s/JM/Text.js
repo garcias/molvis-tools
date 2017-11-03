@@ -68,13 +68,13 @@ this.pymolOffset = null;
 this.valign = 3;
 }, "~N");
 Clazz.makeConstructor (c$, 
- function (vwr) {
-this.vwr = vwr;
+function () {
 this.boxXY =  Clazz.newFloatArray (5, 0);
-}, "JV.Viewer");
+});
 c$.newLabel = Clazz.defineMethod (c$, "newLabel", 
 function (vwr, font, text, colix, bgcolix, align, scalePixelsPerMicron) {
-var t =  new JM.Text (vwr);
+var t =  new JM.Text ();
+t.vwr = vwr;
 t.set (font, colix, align, true, scalePixelsPerMicron);
 t.setText (text);
 t.bgcolix = bgcolix;
@@ -82,7 +82,8 @@ return t;
 }, "JV.Viewer,javajs.awt.Font,~S,~N,~N,~N,~N");
 c$.newEcho = Clazz.defineMethod (c$, "newEcho", 
 function (vwr, font, target, colix, valign, align, scalePixelsPerMicron) {
-var t =  new JM.Text (vwr);
+var t =  new JM.Text ();
+t.vwr = vwr;
 t.isEcho = true;
 t.set (font, colix, align, false, scalePixelsPerMicron);
 t.target = target;
@@ -183,10 +184,10 @@ this.recalc ();
 var dy = this.offsetY * imageFontScaling;
 this.xAdj = (this.fontScale >= 2 ? 8 : 4);
 this.yAdj = this.ascent - this.lineHeight + this.xAdj;
-if (this.isLabelOrHover) {
+if (this.isLabelOrHover || this.pymolOffset != null) {
 boxXY[0] = this.movableX;
 boxXY[1] = this.movableY;
-if (this.pymolOffset != null) {
+if (this.pymolOffset != null && this.pymolOffset[0] != 2 && this.pymolOffset[0] != 3) {
 var pixelsPerAngstrom = this.vwr.tm.scaleToScreen (this.z, 1000);
 var pz = this.pymolOffset[3];
 var dz = (pz < 0 ? -1 : 1) * Math.max (0, Math.abs (pz) - 1) * pixelsPerAngstrom;
@@ -205,7 +206,17 @@ isAbsolute = true;
 this.boxYoff2 = -2;
 } else {
 this.boxYoff2 = 0;
-}JM.Text.setBoxXY (this.boxWidth, this.boxHeight, dx, dy, boxXY, isAbsolute);
+}if (this.pymolOffset == null) switch (this.align) {
+case 8:
+dy = 0;
+dx = 0;
+break;
+case 12:
+boxXY[0] -= this.boxWidth;
+case 4:
+dy = 0;
+}
+JM.Text.setBoxXY (this.boxWidth, this.boxHeight, dx, dy, boxXY, isAbsolute);
 } else {
 this.setPos (this.fontScale);
 }this.boxX = boxXY[0];
@@ -446,11 +457,16 @@ y <<= 1;
 }, "~B,~N,~N,JU.BS");
 Clazz.defineMethod (c$, "getPymolScreenOffset", 
 function (atomPt, screen, zSlab, pTemp, sppm) {
-if (atomPt != null && Math.abs (this.pymolOffset[0]) == 1) pTemp.setT (atomPt);
+var mode = this.pymolOffset[0];
+if (atomPt != null && (Math.abs (mode) % 2) == 1) pTemp.setT (atomPt);
  else pTemp.set (0, 0, 0);
 pTemp.add3 (this.pymolOffset[4], this.pymolOffset[5], this.pymolOffset[6]);
 this.vwr.tm.transformPtScr (pTemp, screen);
-this.setXYZs (screen.x, screen.y, screen.z, zSlab);
+if (mode == 2 || mode == 3) {
+screen.x += this.pymolOffset[1];
+screen.y += this.pymolOffset[2];
+screen.z += this.pymolOffset[3];
+}this.setXYZs (screen.x, screen.y, screen.z, zSlab);
 this.setScalePixelsPerMicron (sppm);
 }, "JU.P3,JU.P3i,~N,JU.P3,~N");
 });

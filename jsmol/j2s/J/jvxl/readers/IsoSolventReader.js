@@ -121,7 +121,7 @@ this.generateSolventCube ();
 var info = this.params.slabInfo;
 if (info != null) for (var i = 0; i < info.size (); i++) if ((info.get (i)[2]).booleanValue () && Clazz.instanceOf (info.get (i)[0], JU.P4)) {
 this.volumeData.capData (info.get (i)[0], this.params.cutoff);
-info.remove (i--);
+info.removeItemAt (i--);
 }
 });
 Clazz.overrideMethod (c$, "getSurfacePointAndFraction", 

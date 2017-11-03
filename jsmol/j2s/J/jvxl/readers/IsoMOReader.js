@@ -207,6 +207,7 @@ this.q.createCube ();
 if (!isMonteCarlo) JU.Logger.info ("generating isosurface data for MO using cutoff " + this.params.cutoff);
 if (!this.setupCalculation ()) return;
 this.q.createCube ();
+this.jvxlData.integration = this.q.getIntegration ();
 }});
 Clazz.overrideMethod (c$, "getPlane", 
 function (x) {

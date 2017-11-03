@@ -1,5 +1,5 @@
 Clazz.declarePackage ("JS");
-Clazz.load (null, "JS.SmilesStereo", ["java.lang.Float", "java.util.Arrays", "JU.AU", "$.Measure", "$.PT", "$.T3", "$.V3", "JS.InvalidSmilesException", "$.PolyhedronStereoSorter", "$.SmilesAtom", "$.SmilesParser", "$.SmilesSearch", "JU.Escape", "$.Logger"], function () {
+Clazz.load (null, "JS.SmilesStereo", ["java.lang.Float", "java.util.Arrays", "JU.AU", "$.Measure", "$.PT", "$.T3", "$.V3", "JS.InvalidSmilesException", "$.PolyhedronStereoSorter", "$.SmilesAtom", "$.SmilesParser", "JU.Escape", "$.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.chiralClass = -2147483648;
 this.chiralOrder = -2147483648;
@@ -260,7 +260,7 @@ map[i] = (bonds[0].isFromPreviousTo (atom) ? 100 : 0) + n000 + i;
 return true;
 }var n = bonds.length;
 for (var k = 0; k < n; k++) {
-var bAtom = bonds[k].getOtherAtomNode (atom);
+var bAtom = bonds[k].getOtherNode (atom);
 if (bAtom === cAtom) {
 map[i] = (k + 1) * 10 + n000 + i;
 return true;
@@ -274,13 +274,13 @@ return (i < 0 || i >= this.jmolAtoms.length ? null : this.jmolAtoms[i]);
 Clazz.defineMethod (c$, "sortBondsByStereo", 
 function (atom, atomPrev, ref, bonds, vTemp) {
 if (bonds.length < 2 || !(Clazz.instanceOf (atom, JU.T3))) return;
-if (atomPrev == null) atomPrev = bonds[0].getOtherAtomNode (atom);
+if (atomPrev == null) atomPrev = bonds[0].getOtherNode (atom);
 var aTemp =  Clazz.newArray (bonds.length, 0, null);
 if (this.sorter == null) this.sorter =  new JS.PolyhedronStereoSorter ();
 vTemp.sub2 (atomPrev, ref);
 this.sorter.setRef (vTemp);
 for (var i = bonds.length; --i >= 0; ) {
-var a = bonds[i].getOtherAtomNode (atom);
+var a = bonds[i].getOtherNode (atom);
 var f = (a === atomPrev ? 0 : this.sorter.isAligned (a, ref, atomPrev) ? -999 : JU.Measure.computeTorsion (atom, atomPrev, ref, a, true));
 if (bonds.length > 2) f += 360;
 aTemp[i] =  Clazz.newArray (-1, [bonds[i], Float.$valueOf (f), a]);
@@ -289,7 +289,7 @@ java.util.Arrays.sort (aTemp, this.sorter);
 if (JU.Logger.debugging) JU.Logger.info (JU.Escape.e (aTemp));
 for (var i = bonds.length; --i >= 0; ) bonds[i] = aTemp[i][0];
 
-}, "JU.Node,JU.Node,JU.T3,~A,JU.V3");
+}, "JU.SimpleNode,JU.SimpleNode,JU.T3,~A,JU.V3");
 Clazz.defineMethod (c$, "checkStereoChemistry", 
 function (search, v) {
 this.search = search;
@@ -317,7 +317,7 @@ var nH = Math.max (pAtom.explicitHydrogenCount, 0);
 var order = pAtom.stereo.chiralOrder;
 var chiralClass = pAtom.stereo.chiralClass;
 if (haveTopo && sAtom0.getChiralClass () != chiralClass) return false;
-if (JU.Logger.debugging) JU.Logger.debug ("...type " + chiralClass + " for pattern atom " + pAtom + " " + atom0);
+if (JU.Logger.debugging) JU.Logger.debug ("...type " + chiralClass + " for pattern atom \n " + pAtom + "\n " + atom0);
 switch (chiralClass) {
 case 1:
 if (pAtom.stereo.isNot) isNot = !isNot;
@@ -483,8 +483,8 @@ return (JS.SmilesStereo.checkStereochemistryAll (false, atom0, chiralClass, 1, a
 case 2:
 case 4:
 if (atom3 == null || atom4 == null) return "";
-var d = JS.SmilesSearch.getNormalThroughPoints (atom1, atom2, atom3, v.vTemp, v.vA, v.vB);
-if (Math.abs (JS.SmilesStereo.distanceToPlane (v.vTemp, d, atom4)) < 0.2) {
+var d = JU.Measure.getNormalThroughPoints (atom1, atom2, atom3, v.vTemp, v.vA);
+if (Math.abs (JU.Measure.distanceToPlaneV (v.vTemp, d, atom4)) < 0.2) {
 chiralClass = 7;
 if (JS.SmilesStereo.checkStereochemistryAll (false, atom0, chiralClass, 1, atom1, atom2, atom3, atom4, atom5, atom6, v)) return "@SP1";
 if (JS.SmilesStereo.checkStereochemistryAll (false, atom0, chiralClass, 2, atom1, atom2, atom3, atom4, atom5, atom6, v)) return "@SP2";
@@ -493,7 +493,7 @@ if (JS.SmilesStereo.checkStereochemistryAll (false, atom0, chiralClass, 3, atom1
 return (JS.SmilesStereo.checkStereochemistryAll (false, atom0, chiralClass, 1, atom1, atom2, atom3, atom4, atom5, atom6, v) ? "@" : "@@");
 }}
 return "";
-}, "JU.Node,~A,~N,JS.VTemp");
+}, "JU.SimpleNode,~A,~N,JS.VTemp");
 c$.checkStereochemistryAll = Clazz.defineMethod (c$, "checkStereochemistryAll", 
  function (isNot, atom0, chiralClass, order, atom1, atom2, atom3, atom4, atom5, atom6, v) {
 switch (chiralClass) {
@@ -534,7 +534,7 @@ return (isNot == ((v.vNorm2.dot (v.vNorm3) < 0 ? 2 : 1) == order));
 case 1:
 return true;
 }
-}, "~B,JU.Node,~N,~N,JU.Node,JU.Node,JU.Node,JU.Node,JU.Node,JU.Node,JS.VTemp");
+}, "~B,JU.SimpleNode,~N,~N,JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JS.VTemp");
 c$.isDiaxial = Clazz.defineMethod (c$, "isDiaxial", 
 function (atomA, atomB, atom1, atom2, v, f) {
 v.vA.sub2 (atomA, atom1);
@@ -542,22 +542,19 @@ v.vB.sub2 (atomB, atom2);
 v.vA.normalize ();
 v.vB.normalize ();
 return (v.vA.dot (v.vB) < f);
-}, "JU.Node,JU.Node,JU.Node,JU.Node,JS.VTemp,~N");
+}, "JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JS.VTemp,~N");
 c$.getHandedness = Clazz.defineMethod (c$, "getHandedness", 
 function (a, b, c, pt, v) {
-var d = JS.SmilesSearch.getNormalThroughPoints (a, b, c, v.vTemp, v.vA, v.vB);
-return (JS.SmilesStereo.distanceToPlane (v.vTemp, d, pt) > 0 ? 1 : 2);
-}, "JU.Node,JU.Node,JU.Node,JU.Node,JS.VTemp");
+var d = JU.Measure.getNormalThroughPoints (a, b, c, v.vTemp, v.vA);
+d = JU.Measure.distanceToPlaneV (v.vTemp, d, pt);
+return (d > 0 ? 1 : 2);
+}, "JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JU.SimpleNode,JS.VTemp");
 c$.getPlaneNormals = Clazz.defineMethod (c$, "getPlaneNormals", 
  function (atom1, atom2, atom3, atom4, v) {
-JS.SmilesSearch.getNormalThroughPoints (atom1, atom2, atom3, v.vNorm2, v.vTemp1, v.vTemp2);
-JS.SmilesSearch.getNormalThroughPoints (atom2, atom3, atom4, v.vNorm3, v.vTemp1, v.vTemp2);
-JS.SmilesSearch.getNormalThroughPoints (atom3, atom4, atom1, v.vNorm4, v.vTemp1, v.vTemp2);
-}, "JU.Node,JU.Node,JU.Node,JU.Node,JS.VTemp");
-c$.distanceToPlane = Clazz.defineMethod (c$, "distanceToPlane", 
-function (norm, w, pt) {
-return (norm == null ? NaN : (norm.x * pt.x + norm.y * pt.y + norm.z * pt.z + w) / Math.sqrt (norm.x * norm.x + norm.y * norm.y + norm.z * norm.z));
-}, "JU.V3,~N,JU.P3");
+JU.Measure.getNormalThroughPoints (atom1, atom2, atom3, v.vNorm2, v.vTemp1);
+JU.Measure.getNormalThroughPoints (atom2, atom3, atom4, v.vNorm3, v.vTemp1);
+JU.Measure.getNormalThroughPoints (atom3, atom4, atom1, v.vNorm4, v.vTemp1);
+}, "JU.P3,JU.P3,JU.P3,JU.P3,JS.VTemp");
 c$.checkChirality = Clazz.defineMethod (c$, "checkChirality", 
 function (pattern, index, newAtom) {
 var stereoClass = 0;

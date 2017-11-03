@@ -126,6 +126,7 @@ text.atomZ = this.zSlab;
 text.setXYZs (this.atomPt.sX, this.atomPt.sY, this.zBox, this.zSlab);
 newText = true;
 }if (text.pymolOffset == null) {
+if (text.font == null) text.setFontFromFid (this.font3d.fid);
 text.setOffset (this.offset);
 if (this.textAlign != 0) text.setAlignment (this.textAlign);
 }text.pointer = this.pointer;

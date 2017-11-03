@@ -454,7 +454,7 @@ this.thisFunction.cmdpt0 = this.iCommand;
 }if (n == 1 && this.braceCount == 1) {
 if (this.lastFlowCommand == null) {
 this.parenCount = this.setBraceCount = this.braceCount = 0;
-this.ltoken.remove (0);
+this.ltoken.removeItemAt (0);
 var t = JS.ContextToken.newContext (true);
 this.addTokenToPrefix (this.setCommand (t));
 this.pushContext (t);
@@ -462,7 +462,7 @@ this.addBrace (this.tokenCommand);
 } else {
 this.parenCount = this.setBraceCount = 0;
 this.setCommand (this.lastFlowCommand);
-if (this.lastFlowCommand.tok != 102439 && (this.tokAt (0) == 1073742332)) this.ltoken.remove (0);
+if (this.lastFlowCommand.tok != 102439 && (this.tokAt (0) == 1073742332)) this.ltoken.removeItemAt (0);
 this.lastFlowCommand = null;
 this.forceFlowContext = this.flowContext;
 }}if (this.bracketCount > 0 || this.setBraceCount > 0 || this.parenCount > 0 || this.braceCount == 1 && !this.checkFlowStartBrace (true)) {
@@ -478,7 +478,7 @@ case 4:
 case 12290:
 break;
 default:
-var t = this.ltoken.remove (2);
+var t = this.ltoken.removeItemAt (2);
 this.ltoken.add (2, JS.T.o (4, t.tok == 2 ? "" + t.intValue : t.value.toString ()));
 }
 }if (this.ltoken.size () > 0) {
@@ -638,7 +638,7 @@ this.implicitString = JS.T.tokAttr (this.tokCommand, 20480);
 }, "JS.T");
 Clazz.defineMethod (c$, "replaceCommand", 
  function (token) {
-this.ltoken.remove (0);
+this.ltoken.removeItemAt (0);
 this.ltoken.add (0, this.setCommand (token));
 }, "JS.T");
 Clazz.defineMethod (c$, "getPrefixToken", 
@@ -656,7 +656,9 @@ this.theToken = null;
 if ((this.theToken = JS.T.getTokenFromName (this.ident)) == null && (this.theToken = JS.T.getTokenFromName (this.identLC)) != null) this.theToken = JS.T.tv (this.theToken.tok, this.theToken.intValue, this.ident);
 } else {
 this.theToken = JS.T.getTokenFromName (this.identLC);
-if (this.theToken != null) switch (this.lastToken.tok) {
+if (isUserVar && this.theToken != null && !this.theToken.value.toString ().equalsIgnoreCase (this.identLC)) {
+this.theToken = null;
+}if (this.theToken != null) switch (this.lastToken.tok) {
 case 1073742336:
 case 268435520:
 case 268435504:
@@ -873,8 +875,7 @@ if (this.nTokens != 1) return this.ERROR (0);
 var f = (this.flowContext == null ? null : this.flowContext.getBreakableContext (val = Math.abs (val)));
 if (f == null) return this.ERROR (1, this.tokenCommand.value);
 this.tokenAt (0).intValue = f.pt0;
-}if (val == 0 && intString.equals ("-0")) this.addTokenToPrefix (JS.T.tokenMinus);
-this.addNumber (2, val, intString);
+}this.addNumber (2, val, intString);
 return 2;
 }if (!this.isMathExpressionCommand && this.parenCount == 0 || this.lastToken.tok != 1073741824 && !JS.ScriptTokenParser.tokenAttr (this.lastToken, 134217728)) {
 var isBondOrMatrix = (this.script.charAt (this.ichToken) == '[');
@@ -1120,7 +1121,7 @@ this.fixFlowAddLine (this.flowContext);
 if (this.lltoken.get (this.iCommand - 1)[0].tok == 102409 && this.forceFlowContext != null && this.forceFlowContext.forceEndIf && this.forceFlowContext.addLine > 0 && this.isFlowIfContextOK (this.forceFlowContext)) {
 this.flowContext = this.forceFlowContext;
 this.flowContext.forceEndIf = true;
-this.lltoken.remove (--this.iCommand);
+this.lltoken.removeItemAt (--this.iCommand);
 } else if (this.flowContext != null && this.flowContext.addLine > 0) {
 while (this.flowContext != null && !this.isFlowIfContextOK (this.flowContext)) {
 if (this.flowContext.checkForceEndIf (0)) {
@@ -1408,13 +1409,13 @@ return false;
 Clazz.defineMethod (c$, "checkFlowEndBrace", 
  function () {
 if (this.iBrace <= 0 || this.vBraces.get (this.iBrace - 1).tok != 1073742338) return 0;
-this.vBraces.remove (--this.iBrace);
-var token = this.vBraces.remove (--this.iBrace);
+this.vBraces.removeItemAt (--this.iBrace);
+var token = this.vBraces.removeItemAt (--this.iBrace);
 if (this.theTok == 1073742332) {
 this.braceCount--;
 this.parenCount--;
 }if (token.tok == 1275335685) {
-this.vPush.remove (--this.pushCount);
+this.vPush.removeItemAt (--this.pushCount);
 this.addTokenToPrefix (this.setCommand (JS.ContextToken.newContext (false)));
 this.isEndOfCommand = true;
 return 2;
@@ -1596,7 +1597,7 @@ case 102412:
 case 134320648:
 case 102439:
 case 102406:
-if (!isExplicitEnd) this.vPush.remove (--this.pushCount);
+if (!isExplicitEnd) this.vPush.removeItemAt (--this.pushCount);
 break;
 case 102436:
 case 134320141:
@@ -1604,9 +1605,9 @@ case 364558:
 if (!this.isCheckOnly) {
 this.addTokenToPrefix (JS.T.o (tok, this.thisFunction));
 JS.ScriptFunction.setFunction (this.thisFunction, this.script, pt1, this.lltoken.size (), this.lineNumbers, this.lineIndices, this.lltoken);
-}this.thisFunction = (this.vFunctionStack.size () == 0 ? null : this.vFunctionStack.remove (0));
+}this.thisFunction = (this.vFunctionStack.size () == 0 ? null : this.vFunctionStack.removeItemAt (0));
 this.tokenCommand.intValue = 0;
-if (tok == 364558) this.vPush.remove (--this.pushCount);
+if (tok == 364558) this.vPush.removeItemAt (--this.pushCount);
 break;
 default:
 return this.errorStr (19, "end " + ident);
