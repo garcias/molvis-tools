@@ -7,6 +7,7 @@ this.symmetryInfo = null;
 this.unitCell = null;
 this.$isBio = false;
 this.desc = null;
+this.cip = null;
 Clazz.instantialize (this, arguments);
 }, JS, "Symmetry", null, J.api.SymmetryInterface);
 Clazz.overrideMethod (c$, "isBio", 
@@ -241,8 +242,8 @@ function (fpt) {
 return this.unitCell.toSupercell (fpt);
 }, "JU.P3");
 Clazz.defineMethod (c$, "toFractional", 
-function (pt, isAbsolute) {
-if (!this.$isBio) this.unitCell.toFractional (pt, isAbsolute);
+function (pt, ignoreOffset) {
+if (!this.$isBio) this.unitCell.toFractional (pt, ignoreOffset);
 }, "JU.T3,~B");
 Clazz.overrideMethod (c$, "toFractionalM", 
 function (m) {
@@ -326,6 +327,7 @@ return this.unitCell.getUnitCellVectors ();
 });
 Clazz.overrideMethod (c$, "getUnitCell", 
 function (points, setRelative, name) {
+if (points == null) return null;
 this.unitCell = JS.UnitCell.newP (points, setRelative);
 if (name != null) this.unitCell.name = name;
 return this;
@@ -388,7 +390,10 @@ return this.getDesc (modelSet).getSymopInfo (iatom, xyz, op, pt, pt2, id, type, 
 }, "JM.ModelSet,~N,~S,~N,JU.P3,JU.P3,~S,~N,~N,~N");
 Clazz.overrideMethod (c$, "getSpaceGroupInfo", 
 function (modelSet, sgName, modelIndex) {
-return this.getDesc (modelSet).getSpaceGroupInfo (this, modelIndex, sgName, 0, null, null, null, 0, -1);
+if (sgName == null) {
+var info = modelSet.getModelAuxiliaryInfo (modelSet.vwr.am.cmi);
+if (info != null) sgName = info.get ("spaceGroup");
+}return this.getDesc (modelSet).getSpaceGroupInfo (this, modelIndex, sgName, 0, null, null, null, 0, -1);
 }, "JM.ModelSet,~S,~N");
 Clazz.overrideMethod (c$, "fcoord", 
 function (p) {
@@ -479,4 +484,29 @@ for (var j = lst.size (); --j >= 0; ) this.unitCell.toCartesian (lst.get (j), tr
 
 }return lst;
 }, "JU.P3");
+Clazz.overrideMethod (c$, "calculateCIPChiralityForAtoms", 
+function (vwr, bsAtoms) {
+vwr.setCursor (3);
+var cip = this.getCIPChirality (vwr);
+var bsAtropisomer = null;
+var bsHelixM = null;
+var bsHelixP = null;
+var setAuxiliary = vwr.getBoolean (603979960);
+try {
+bsAtropisomer = vwr.getSmartsMatch ("[!H](.t1:-20,20)a{a(.t2:-20,20)-a}a[!H]", bsAtoms);
+bsHelixM = vwr.getSmartsMatch ("A{a}(.t:-10,-40)a(.t:-10,-40)aaa", bsAtoms);
+bsHelixP = vwr.getSmartsMatch ("A{a}(.t:10,40)a(.t:10,40)aaa", bsAtoms);
+} catch (e) {
+if (Clazz.exceptionOf (e, Exception)) {
+} else {
+throw e;
+}
+}
+cip.getChiralityForAtoms (vwr.ms.at, bsAtoms, bsAtropisomer, bsHelixM, bsHelixP, setAuxiliary);
+vwr.setCursor (0);
+}, "JV.Viewer,JU.BS");
+Clazz.defineMethod (c$, "getCIPChirality", 
+ function (vwr) {
+return (this.cip == null ? (this.cip = (J.api.Interface.getInterface ("JS.CIPChirality", vwr, "script"))) : this.cip);
+}, "JV.Viewer");
 });

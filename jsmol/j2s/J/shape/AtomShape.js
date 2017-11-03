@@ -127,6 +127,7 @@ return n;
 }, "~N,~N");
 Clazz.defineMethod (c$, "setColixAndPalette", 
 function (colix, paletteID, atomIndex) {
+if (this.colixes == null) System.out.println ("ATOMSHAPE ERROR");
 this.colixes[atomIndex] = colix = this.getColixI (colix, paletteID, atomIndex);
 this.bsColixSet.setBitTo (atomIndex, colix != 0 || this.shapeID == 0);
 this.paletteIDs[atomIndex] = paletteID;

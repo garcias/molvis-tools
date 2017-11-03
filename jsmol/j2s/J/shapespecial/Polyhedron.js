@@ -349,7 +349,6 @@ if (this.center == null) return;
 var v = JU.P3.newP (value);
 if (this.offset != null) value.sub (this.offset);
 this.offset = v;
-this.center.add (value);
 for (var i = this.vertices.length; --i >= 0; ) this.vertices[i].add (value);
 
 }, "JU.P3");

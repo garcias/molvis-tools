@@ -68,7 +68,7 @@ this.cell1.scale (-1 / fset.z);
 var axes = this.vwr.shm.getShape (34);
 if (axes != null && this.vwr.areAxesTainted ()) axes.reinitShape ();
 var axisPoints = (axes == null || this.vwr.getObjectMad10 (1) == 0 || axes.axisXY.z != 0 || axes.fixedOrigin != null || axes.fixedOriginUC.lengthSquared () > 0 ? null : axes.axisPoints);
-var drawAllLines = (this.vwr.getObjectMad10 (1) == 0 || this.vwr.getFloat (570425346) < 2 || axisPoints == null);
+var drawAllLines = (this.isExport || this.vwr.getObjectMad10 (1) == 0 || this.vwr.getFloat (570425346) < 2 || axisPoints == null);
 var aPoints = axisPoints;
 var faces = (hiddenLines ? JU.BoxInfo.facePoints : null);
 if (fset.z == 0) {

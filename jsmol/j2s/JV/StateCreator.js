@@ -432,7 +432,7 @@ var navigating = (tm.mode == 1);
 if (navigating) this.app (commands, "set navigationMode true");
 this.app (commands, this.vwr.ms.getBoundBoxCommand (false));
 this.app (commands, "center " + JU.Escape.eP (tm.fixedRotationCenter));
-commands.append (this.vwr.getOrientationText (1073742035, null));
+commands.append (this.vwr.getOrientationText (1073742034, null, null).toString ());
 this.app (commands, moveToText);
 if (!navigating && !tm.zoomEnabled) this.app (commands, "zoom off");
 commands.append ("  slab ").appendI (tm.slabPercentSetting).append (";depth ").appendI (tm.depthPercentSetting).append (tm.slabEnabled && !navigating ? ";slab on" : "").append (";\n");
@@ -558,7 +558,8 @@ if (m.thisID != null) sb.append (" ID ").append (JU.PT.esc (m.thisID));
 if (m.mad != 0) sb.append (" radius ").appendF (m.thisID == null || m.mad > 0 ? m.mad / 2000 : 0);
 if (m.colix != 0) sb.append (" color ").append (JU.Escape.escapeColor (JU.C.getArgb (m.colix)));
 if (m.text != null) {
-sb.append (" font ").append (m.text.font.getInfo ());
+if (m.text.font != null) sb.append (" font ").append (m.text.font.getInfo ());
+if (m.text.align != 0) sb.append (" align ").append (JV.JC.getHorizAlignmentName (m.text.align));
 if (m.text.pymolOffset != null) sb.append (" offset ").append (JU.Escape.eAF (m.text.pymolOffset));
 }var tickInfo = m.tickInfo;
 if (tickInfo != null) JV.StateCreator.addTickInfo (sb, tickInfo, true);
@@ -840,6 +841,8 @@ if (t.script != null) s.append ("  ").append (echoCmd).append (" script ").appen
 if (t.modelIndex >= 0) s.append ("  ").append (echoCmd).append (" model ").append (this.vwr.getModelNumberDotted (t.modelIndex)).append (";\n");
 if (t.pointerPt != null) {
 s.append ("  ").append (echoCmd).append (" point ").append (Clazz.instanceOf (t.pointerPt, JM.Atom) ? "({" + (t.pointerPt).i + "})" : JU.Escape.eP (t.pointerPt)).append (";\n");
+}if (t.pymolOffset != null) {
+s.append ("  ").append (echoCmd).append (" offset ").append (JU.Escape.escapeFloatA (t.pymolOffset, true)).append (";\n");
 }t.appendFontCmd (s);
 s.append ("; color echo");
 if (JU.C.isColixTranslucent (t.colix)) s.append (JU.C.getColixTranslucencyLabel (t.colix));
@@ -1060,7 +1063,7 @@ break;
 }
 if (list1.size () == 0 || this.undoWorking) return;
 this.undoWorking = true;
-list2.add (0, list1.remove (0));
+list2.add (0, list1.removeItemAt (0));
 s = this.vwr.actionStatesRedo.get (0);
 if (type == 4165 && list2.size () == 1) {
 var pt =  Clazz.newIntArray (-1, [1]);
@@ -1095,7 +1098,7 @@ this.vwr.actionStatesRedo.clear ();
 } else {
 this.vwr.actionStatesRedo.add (1, sb.toString ());
 }if (this.vwr.actionStates.size () == 100) {
-this.vwr.actionStates.remove (99);
+this.vwr.actionStates.removeItemAt (99);
 }}
 this.undoWorking = !clearRedo;
 }, "~N,~N,~B");

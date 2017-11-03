@@ -69,7 +69,7 @@ return sg;
 }, "~N,~S,~O");
 c$.createSGFromList = Clazz.defineMethod (c$, "createSGFromList", 
  function (name, data) {
-var sg =  new JS.SpaceGroup (-1, "0;--;--;--", true);
+var sg =  new JS.SpaceGroup (-1, "0;0;--;--;--", true);
 sg.doNormalize = false;
 sg.name = name;
 var n = data.size ();

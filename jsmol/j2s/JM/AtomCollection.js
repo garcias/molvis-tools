@@ -19,6 +19,7 @@ this.bsSurface = null;
 this.nSurfaceAtoms = 0;
 this.surfaceDistanceMax = 0;
 this.averageAtomPoint = null;
+this.haveChirality = false;
 this.bspf = null;
 this.preserveState = true;
 this.canSkipLoad = true;
@@ -36,12 +37,14 @@ this.atomTypes = null;
 this.atomSerials = null;
 this.atomResnos = null;
 this.atomSeqIDs = null;
+this.dssrData = null;
 this.vibrations = null;
 this.occupancies = null;
 this.bfactor100s = null;
 this.partialCharges = null;
 this.bondingRadii = null;
 this.hydrophobicities = null;
+this.bsPartialCharges = null;
 this.aaRet = null;
 if (!Clazz.isClassDefined ("JM.AtomCollection.AtomSorter")) {
 JM.AtomCollection.$AtomCollection$AtomSorter$ ();
@@ -68,12 +71,14 @@ this.tainted = null;
 this.atomNames = null;
 this.atomTypes = null;
 this.atomResnos = null;
+this.dssrData = null;
 this.atomSerials = null;
 this.atomSeqIDs = null;
 this.vibrations = null;
 this.occupancies = null;
 this.bfactor100s = null;
 this.partialCharges = null;
+this.bsPartialCharges = null;
 this.bondingRadii = null;
 this.atomTensors = null;
 });
@@ -83,6 +88,7 @@ this.tainted = mergeModelSet.tainted;
 this.atomNames = mergeModelSet.atomNames;
 this.atomTypes = mergeModelSet.atomTypes;
 this.atomResnos = mergeModelSet.atomResnos;
+this.dssrData = mergeModelSet.dssrData;
 this.atomSerials = mergeModelSet.atomSerials;
 this.atomSeqIDs = mergeModelSet.atomSeqIDs;
 this.vibrations = mergeModelSet.vibrations;
@@ -90,6 +96,7 @@ this.occupancies = mergeModelSet.occupancies;
 this.bfactor100s = mergeModelSet.bfactor100s;
 this.bondingRadii = mergeModelSet.bondingRadii;
 this.partialCharges = mergeModelSet.partialCharges;
+this.bsPartialCharges = mergeModelSet.bsPartialCharges;
 this.atomTensors = mergeModelSet.atomTensors;
 this.atomTensorList = mergeModelSet.atomTensorList;
 this.bsModulated = mergeModelSet.bsModulated;
@@ -630,11 +637,13 @@ if (doTaint) this.taintAtom (atomIndex, 7);
 }, "~N,~N,~B");
 Clazz.defineMethod (c$, "setPartialCharge", 
 function (atomIndex, partialCharge, doTaint) {
-if (Float.isNaN (partialCharge) || doTaint && partialCharge == this.at[atomIndex].getPartialCharge ()) return;
+if (Float.isNaN (partialCharge)) return;
 if (this.partialCharges == null) {
+this.bsPartialCharges =  new JU.BS ();
 if (partialCharge == 0) return;
 this.partialCharges =  Clazz.newFloatArray (this.at.length, 0);
-}this.partialCharges[atomIndex] = partialCharge;
+}this.bsPartialCharges.set (atomIndex);
+this.partialCharges[atomIndex] = partialCharge;
 if (doTaint) this.taintAtom (atomIndex, 8);
 }, "~N,~N,~B");
 Clazz.defineMethod (c$, "setBondingRadius", 
@@ -813,12 +822,18 @@ for (var i = bsAtoms.nextSetBit (0); i >= 0; i = bsAtoms.nextSetBit (i + 1)) thi
 }, "JU.BS,~N");
 Clazz.defineMethod (c$, "taintAtom", 
 function (atomIndex, type) {
-if (!this.preserveState) return;
+if (this.preserveState) {
 if (this.tainted == null) this.tainted =  new Array (17);
 if (this.tainted[type] == null) this.tainted[type] = JU.BS.newN (this.ac);
 this.tainted[type].set (atomIndex);
-if (type == 2) this.validateBspfForModel ((this).am[this.at[atomIndex].mi].trajectoryBaseIndex, false);
+}if (type == 2) this.taintModelCoord (atomIndex);
 }, "~N,~N");
+Clazz.defineMethod (c$, "taintModelCoord", 
+ function (atomIndex) {
+var m = (this).am[this.at[atomIndex].mi];
+this.validateBspfForModel (m.trajectoryBaseIndex, false);
+if (m.isBioModel) m.resetDSSR (true);
+}, "~N");
 Clazz.defineMethod (c$, "untaint", 
  function (atomIndex, type) {
 if (!this.preserveState) return;
@@ -827,7 +842,7 @@ this.tainted[type].clear (atomIndex);
 }, "~N,~N");
 Clazz.defineMethod (c$, "setTaintedAtoms", 
 function (bs, type) {
-if (!this.preserveState) return;
+if (this.preserveState) {
 if (bs == null) {
 if (this.tainted == null) return;
 this.tainted[type] = null;
@@ -835,7 +850,10 @@ return;
 }if (this.tainted == null) this.tainted =  new Array (17);
 if (this.tainted[type] == null) this.tainted[type] = JU.BS.newN (this.ac);
 JU.BSUtil.copy2 (bs, this.tainted[type]);
-}, "JU.BS,~N");
+}if (type == 2) {
+var i = bs.nextSetBit (0);
+if (i >= 0) this.taintModelCoord (i);
+}}, "JU.BS,~N");
 Clazz.defineMethod (c$, "unTaintAtoms", 
 function (bs, type) {
 if (this.tainted == null || this.tainted[type] == null) return;
@@ -1819,10 +1837,12 @@ this.atomTypes = JU.AU.deleteElements (this.atomTypes, firstAtomIndex, nAtoms);
 this.atomResnos = JU.AU.deleteElements (this.atomResnos, firstAtomIndex, nAtoms);
 this.atomSerials = JU.AU.deleteElements (this.atomSerials, firstAtomIndex, nAtoms);
 this.atomSeqIDs = JU.AU.deleteElements (this.atomSeqIDs, firstAtomIndex, nAtoms);
+this.dssrData = JU.AU.deleteElements (this.dssrData, firstAtomIndex, nAtoms);
 this.bfactor100s = JU.AU.deleteElements (this.bfactor100s, firstAtomIndex, nAtoms);
 this.hasBfactorRange = false;
 this.occupancies = JU.AU.deleteElements (this.occupancies, firstAtomIndex, nAtoms);
 this.partialCharges = JU.AU.deleteElements (this.partialCharges, firstAtomIndex, nAtoms);
+this.bsPartialCharges = JU.BSUtil.deleteBits (this.bsPartialCharges, bsAtoms);
 this.atomTensorList = JU.AU.deleteElements (this.atomTensorList, firstAtomIndex, nAtoms);
 this.vibrations = JU.AU.deleteElements (this.vibrations, firstAtomIndex, nAtoms);
 this.nSurfaceAtoms = 0;
@@ -1851,7 +1871,7 @@ for (var key, $key = this.atomTensors.keySet ().iterator (); $key.hasNext () && 
 var list = this.atomTensors.get (key);
 for (var i = list.size (); --i >= 0; ) {
 var t = list.get (i);
-if (bsAtoms.get (t.atomIndex1) || t.atomIndex2 >= 0 && bsAtoms.get (t.atomIndex2)) list.remove (i);
+if (bsAtoms.get (t.atomIndex1) || t.atomIndex2 >= 0 && bsAtoms.get (t.atomIndex2)) list.removeItemAt (i);
 }
 if (list.size () == 0) toDelete.addLast (key);
 }

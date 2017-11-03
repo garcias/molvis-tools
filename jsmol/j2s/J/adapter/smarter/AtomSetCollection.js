@@ -81,7 +81,7 @@ this.setInfo ("properties", p);
 if (array != null) {
 var n = 0;
 this.readerList =  new JU.Lst ();
-for (var i = 0; i < array.length; i++) if (array[i].ac > 0 || array[i].reader != null && array[i].reader.mustFinalizeModelSet) this.appendAtomSetCollection (n++, array[i]);
+for (var i = 0; i < array.length; i++) if (array[i] != null && (array[i].ac > 0 || array[i].reader != null && array[i].reader.mustFinalizeModelSet)) this.appendAtomSetCollection (n++, array[i]);
 
 if (n > 1) this.setInfo ("isMultiFile", Boolean.TRUE);
 } else if (list != null) {
@@ -530,7 +530,8 @@ Clazz.defineMethod (c$, "setAtomSetCollectionPartialCharges",
 function (auxKey) {
 if (!this.atomSetInfo.containsKey (auxKey)) return false;
 var atomData = this.atomSetInfo.get (auxKey);
-for (var i = atomData.size (); --i >= 0; ) this.atoms[i].partialCharge = atomData.get (i).floatValue ();
+var n = atomData.size ();
+for (var i = this.ac; --i >= 0; ) this.atoms[i].partialCharge = atomData.get (i % n).floatValue ();
 
 JU.Logger.info ("Setting partial charges type " + auxKey);
 return true;

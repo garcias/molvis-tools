@@ -10654,6 +10654,18 @@ return jQuery;
 
 // see JSmolApi.js for public user-interface. All these are private functions
 
+
+// BH 7/6/2017 2:22:07 AM adds BZ2 as binary
+// BH 4/13/2017 11:23:05 PM adds "binary pmesh" .pmb extension
+// BH 1/14/2017 6:28:07 AM adds &debugCore
+// BH 10/20/2016 10:00:43 AM JmolTracker.php
+// BH 9/19/2016 8:22:48 AM drag-drop broken for https (imageDrop.htm)
+// BH 9/18/2016 btoa() does not work with UTF-8 data (set language es;write menu t.mnu)
+// BH 8/26/2016 11:29:48 AM RCSB ligand 
+// BH 8/26/2016 11:29:48 AM generic fixProtocol for .gov/ to https
+// BH 8/26/2016 6:56:31 AM chemapps.stolaf.edu exclusively https
+// BH 8/25/2016 9:47:26 PM bug fix: NCI/CADD now requires "get3d=true" not "get3d=True"
+// BH 7/31/2016 6:42:06 AM changes mouse wheel from -1 to 507
 // BH 6/27/2016 1:16:57 AM adds Jmol.playAudio(fname)
 // BH 4/26/2016 4:16:07 PM adds Jmol.loadFileFromDialog(applet)
 // BH 4/21/2016 9:25:39 AM adds [URL] button to file load option
@@ -10816,7 +10828,7 @@ Jmol = (function(document) {
 		}
 	};
 	var j = {
-		_version: "$Date: 2016-05-08 13:20:27 -0500 (Sun, 08 May 2016) $", // svn.keywords:lastUpdated
+		_version: "$Date: 2017-07-06 02:22:33 -0500 (Thu, 06 Jul 2017) $", // svn.keywords:lastUpdated
 		_alertNoBinary: true,
 		// this url is used to Google Analytics tracking of Jmol use. You may remove it or modify it if you wish. 
 		_allowedJmolSize: [25, 2048, 300],   // min, max, default (pixels)
@@ -10838,6 +10850,7 @@ Jmol = (function(document) {
 		_getZOrders: getZOrders,
 		_z:getZOrders(z),
 		_debugCode: true,  // set false in process of minimization
+    _debugCore: false, // set true using URL &debugCore
 		db: {
 			_databasePrefixes: "$=:",
 			_fileLoadScript: ";if (_loadScript = '' && defaultLoadScript == '' && _filetype == 'Pdb') { select protein or nucleic;cartoons Only;color structure; select * };",
@@ -10855,12 +10868,12 @@ Jmol = (function(document) {
 				"materialsproject.org": null, 
 				".ebi.ac.uk": null, 
 				"pubchem.ncbi.nlm.nih.gov":null,
-				"http://www.nmrdb.org/tools/jmol/predict.php":null,
+				"www.nmrdb.org/tools/jmol/predict.php":null,
 				"$": "https://cactus.nci.nih.gov/chemical/structure/%FILENCI/file?format=sdf&get3d=True",
 				"$$": "https://cactus.nci.nih.gov/chemical/structure/%FILENCI/file?format=sdf",
-				"=": "http://files.rcsb.org/view/%FILE.pdb",
-				"*": "http://www.ebi.ac.uk/pdbe/entry-files/download/%FILE.cif",
-				"==": "http://www.rcsb.org/pdb/files/ligand/%FILE.cif",
+				"=": "https://files.rcsb.org/download/%FILE.pdb",
+				"*": "https://www.ebi.ac.uk/pdbe/entry-files/download/%FILE.cif",
+				"==": "https://files.rcsb.org/ligands/download/%FILE.cif",
 				":": "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/%FILE/SDF?record_type=3d"
 			},
 			_restQueryUrl: "http://www.rcsb.org/pdb/rest/search",
@@ -10873,7 +10886,7 @@ Jmol = (function(document) {
 		_lastAppletID: null,
 		_mousePageX: null,
 		_mouseOwner: null,
-		_serverUrl: "http://your.server.here/jsmol.php",
+		_serverUrl: "https://your.server.here/jsmol.php",
 		_syncId: ("" + Math.random()).substring(3),
 		_touching: false,
 		_XhtmlElement: null,
@@ -10881,13 +10894,14 @@ Jmol = (function(document) {
 	}
 	
 	var ref = document.location.href.toLowerCase();
+  j._debugCore = (ref.indexOf("j2sdebugcore") >= 0);
 	j._httpProto = (ref.indexOf("https") == 0 ? "https://" : "http://"); 
 	j._isFile = (ref.indexOf("file:") == 0);
 	if (j._isFile) // ensure no attempt to read XML in local request:
 	  $.ajaxSetup({ mimeType: "text/plain" });
 	j._ajaxTestSite = j._httpProto + "google.com";
 	var isLocal = (j._isFile || ref.indexOf("http://localhost") == 0 || ref.indexOf("http://127.") == 0);
-	j._tracker = (j._httpProto == "http://" && !isLocal && 'http://chemapps.stolaf.edu/jmol/JmolTracker.htm?id=UA-45940799-1');
+	j._tracker = (!isLocal && 'https://chemapps.stolaf.edu/jmol/JmolTracker.php?id=UA-45940799-1');
 	
 	j._isChrome = (navigator.userAgent.toLowerCase().indexOf("chrome") >= 0);
 	j._isSafari = (!j._isChrome && navigator.userAgent.toLowerCase().indexOf("safari") >= 0);
@@ -10948,12 +10962,14 @@ Jmol = (function(document) {
 	}
 
   Jmol._fixProtocol = function(url) {
+    if (url.indexOf("get3d=True") >= 0)
+      url = url.replace(/get3d\=True/, "get3d=true"); // NCI/CADD change 08/2016
   	return (    
     url.indexOf("http://www.rcsb.org/pdb/files/") == 0 && url.indexOf("/ligand/") < 0 ? 
       "http://files.rcsb.org/view/" + url.substring(30).replace(/\.gz/,"")    
     : url.indexOf("http://") == 0 && (
-      url.indexOf("http://pubchem") == 0 
-      || url.indexOf("http://cactus") == 0
+      Jmol._httpProto == "https://"
+      || url.indexOf(".gov/") > 0 
       || url.indexOf("http://www.materialsproject") == 0) 
       ? "https" + url.substring(4) : url);
   }
@@ -11332,7 +11348,7 @@ Jmol = (function(document) {
 				query = encodeURIComponent(query.substring(pt));		
 			}
       if (query.indexOf(".mmtf") >= 0) {
-        query = "http://mmtf.rcsb.org/full/" + query
+        query = "http://mmtf.rcsb.org/full/" + query.replace(/\.mmtf/, "");
 			} else if (call.indexOf("FILENCI") >= 0) {
 				query = query.replace(/\%2F/g, "/");				
 				query = call.replace(/\%FILENCI/, query);
@@ -11567,7 +11583,7 @@ Jmol = (function(document) {
 		return true;  
 	}
 
-	Jmol._binaryTypes = ["mmtf",".gz",".jpg",".gif",".png",".zip",".jmol",".bin",".smol",".spartan",".mrc",".map",".ccp4",".dn6",".delphi",".omap",".pse",".dcd"];
+	Jmol._binaryTypes = ["mmtf",".gz",".bz2",".jpg",".gif",".png",".zip",".jmol",".bin",".smol",".spartan",".pmb",".mrc",".map",".ccp4",".dn6",".delphi",".omap",".pse",".dcd"];
 
 	Jmol._isBinaryUrl = function(url) {
 		for (var i = Jmol._binaryTypes.length; --i >= 0;)
@@ -11701,7 +11717,7 @@ Jmol = (function(document) {
 		}
 		// we actually cannot suggest a fileName, I believe.
 		if (!Jmol.featureDetection.hasFileReader) {
-        var mst = "Local file reading is not enabled in your browser";
+        var msg = "Local file reading is not enabled in your browser";
 				return (fileLoadThread ? fileLoadThread.setData(msg, null, null, appData, applet) : alert(msg));
     }
 		if (!applet._localReader) {
@@ -11775,17 +11791,16 @@ Jmol = (function(document) {
 			: filename.indexOf(".gif") >= 0 ? "image/gif" 
 			: filename.indexOf(".jpg") >= 0 ? "image/jpg" : ""));
 		var isString = (typeof data == "string");
-		if (!isString)
-			data = (JU ? JU : J.util).Base64.getBase64(data).toString();
-		encoding || (encoding = (isString ? "" : "base64"));
+   	data = (JU ? JU : J.util).Base64.getBase64(isString ? data.getBytes("UTF-8") : data).toString();
+		encoding || (encoding = "base64");
 		var url = Jmol._serverUrl;
 		url && url.indexOf("your.server") >= 0 && (url = "");
 		if (Jmol._useDataURI || !url) {
 			// Asynchronous output generated using an anchor tag
-			encoding || (data = btoa(data));
+			// btoa does not work with UTF-8 data///encoding || (data = btoa(data));
 			var a = document.createElement("a");
 			a.href = "data:" + mimetype + ";base64," + data;
-			a.type = mimetype || (mimetype = "text/plain");	
+			a.type = mimetype || (mimetype = "text/plain;charset=utf-8");	
 			a.download = filename;
 			a.target = "_blank";
 				$("body").append(a);
@@ -11849,7 +11864,7 @@ Jmol = (function(document) {
       applet._appletPanel = (javaAppletPanel || javaApplet);
       applet._applet = javaApplet;
     }
-		Jmol._track(applet._readyCallback(appId, fullId, isReady));
+		Jmol._track(applet)._readyCallback(appId, fullId, isReady);
 	}
 
 	Jmol._getWrapper = function(applet, isHeader) {
@@ -12403,7 +12418,7 @@ Jmol = (function(document) {
 			var oe = ev.originalEvent;
 			var scroll = (oe.detail ? oe.detail : (Jmol.featureDetection.os == "mac" ? 1 : -1) * oe.wheelDelta); // Mac and PC are reverse; but 
 			var modifiers = Jmol._jsGetMouseModifiers(ev);
-			canvas.applet._processEvent(-1,[scroll < 0 ? -1 : 1,0,modifiers]);
+			canvas.applet._processEvent(507,[scroll < 0 ? -1 : 1,0,modifiers]);
 			return false;
 		});
 
@@ -12655,7 +12670,7 @@ Swing.setText = function(btn) {
 }
 
 Swing.setVisible = function(c) {
-	Jmol.$setVisible(c.id, c.visible);
+	Jmol.$setVisible(c.id, c._visible);
 }
 
 Swing.setEnabled = function(c) {
@@ -12698,7 +12713,7 @@ Swing.hideMenus = function(applet) {
 	var menus = applet._menus;
 	if (menus)
 		for (var i in menus)
-			if (menus[i].visible)
+			if (menus[i]._visible)
 				Swing.hideMenu(menus[i]);
 }
 
@@ -12794,11 +12809,31 @@ Jmol.View = {
 
 // methods called from other modules have no "_" in their name
 
+View.resetView = function(applet, appletNot) {
+  debugger;
+  if (appletNot) {
+  	if (!appletNot._viewSet)
+  		return;
+    var set = Jmol.View.applets[appletNot._viewSet]
+    for (var applet in set) {
+      if (applet == appletNot)
+        continue;
+      Jmol.View.resetView(applet);
+    }
+    return;
+  }
+  if (applet) {
+  	applet._reset();
+    Jmol.View.updateView(applet);
+  }
+}
+
 View.updateView = function(applet, Info, _View_updateView) {
 	// Info.chemID, Info.data, possibly Info.viewID if no chemID
 	// return from applet after asynchronous download of new data
 	if (applet._viewSet == null)
 		return;
+  Info || (Info = {});
 	Info.chemID || (applet._searchQuery = null);
 	Info.data || (Info.data = "N/A");
 	Info.type = applet._viewType;
@@ -12974,7 +13009,7 @@ Jmol.Cache.put = function(filename, data) {
 				// but it will be only a URL, not an actual file. 
 				try {
 				  file = "" + oe.dataTransfer.getData("text");
-				  if (file.indexOf("file:/") == 0 || file.indexOf("http:/") == 0) {
+				  if (file.indexOf("file:/") == 0 || file.indexOf("http:/") == 0 || file.indexOf("https:/") == 0) {
 				  	me._scriptLoad(file);
 				  	return;
 			  	}
@@ -14237,6 +14272,10 @@ Jmol._canvasCache = {};
 		}
 	}
 
+  proto._reset = function(_jmol_resetView) {
+    this._scriptWait("zap", true);
+  }
+  
 	proto._updateView = function(_jmol_updateView) {
 		if (this._viewSet == null || !this._applet)
 			return;
@@ -14954,6 +14993,7 @@ Jmol._canvasCache = {};
 })(Jmol);
 // JmolApi.js -- Jmol user functions  Bob Hanson hansonr@stolaf.edu
 
+// BH 1/19/2017 8:05:05 AM <br>
 // BH 4/1/2016 12:59:45 PM fix applet_or_identifier reference in Jmol.getChemicalInfo
 // BH 5/29/2014 8:14:06 AM added default command for command input box
 // BH 3/10/2014 10:35:25 AM adds Jmol.saveImage(applet)
@@ -15223,7 +15263,7 @@ Jmol._canvasCache = {};
 
 
 	Jmol.jmolBr = function() {
-		return Jmol._documentWrite("<br />");
+		return Jmol._documentWrite("<br>");
 	}
 
 	Jmol.jmolButton = function(appletOrId, script, label, id, title) {
@@ -15376,6 +15416,10 @@ Jmol._canvasCache = {};
 		}
 	}  
 
+	Jmol.resetView = function(applet, appletNot) {
+    Jmol.View.resetView(applet, appletNot);
+	}
+
 	Jmol.updateView = function(applet, param1, param2) {
 		applet._updateView(param1, param2);
 	}
@@ -15451,6 +15495,9 @@ Jmol._canvasCache = {};
  // NOTES by Bob Hanson: 
   // J2S class changes:
 
+ // BH 10/16/2017 6:30:14 AM fix for prepareCallback reducing arguments length to -1
+ // BH 7/7/2017 7:10:39 AM fixes Clazz.clone for arrays
+ // BH 1/14/2017 6:23:54 AM adds URL switch  j2sDebugCore
  // BH 1/8/2016 6:21:38 PM adjustments to prevent multiple load of corejmol.js 
  // BH 12/30/2015 9:13:40 PM Clazz.floatToInt should return 0 for NaN
  // BH 12/23/2015 9:23:06 AM allowing browser to display stack for TypeError in exceptionOf
@@ -15703,7 +15750,8 @@ var addProto = function(proto, name, func) {
 
 	Clazz.clone = function(me) {
 		// BH allows @j2sNative access without super constructor
-		var o = new me.constructor();
+    // BH 7/7/2017 7:20:47 AM array clone must preserve length for java.util.Hashtable.clone()
+		var o = (me instanceof Array ? new Array(me.length) : new me.constructor());
 		for (var i in me) {
 			o[i] = me[i];
       }
@@ -17552,7 +17600,8 @@ Clazz.prepareCallback = function (innerObj, args) {
 	// note that args is an instance of arguments -- NOT an array; does not have the .shift() method!
 	for (var i = 0; i < args.length - 1; i++)
 		args[i] = args[i + 1];
-	args.length--;
+  if (args.length > 0)
+  	args.length--;
 };
 
 /**
@@ -19190,6 +19239,8 @@ _Loader.jarClasspath = function (jar, clazzes) {
 	if (!(clazzes instanceof Array))
 		clazzes = [clazzes];
 	unwrapArray(clazzes);
+  if (Jmol._debugCore)
+    jar = jar.replace(/\.z\./, ".")
 	for (var i = clazzes.length; --i >= 0;)
 		classpathMap["#" + clazzes[i]] = jar;
 	classpathMap["$" + jar] = clazzes;
@@ -20843,6 +20894,6 @@ Sys.err.write = function (buf, offset, len) {
 })(Clazz, Jmol); // requires JSmolCore.js
 
 }; // called by external application 
-Jmol.___JmolDate="$Date: 2016-07-11 18:22:49 -0500 (Mon, 11 Jul 2016) $"
+Jmol.___JmolDate="$Date: 2017-10-28 11:29:01 -0500 (Sat, 28 Oct 2017) $"
 Jmol.___fullJmolProperties="src/org/jmol/viewer/Jmol.properties"
-Jmol.___JmolVersion="14.6.1_2016.07.11"
+Jmol.___JmolVersion="14.22.1"

@@ -2,6 +2,7 @@ Clazz.declarePackage ("J.adapter.readers.xml");
 Clazz.load (["J.adapter.smarter.AtomSetCollectionReader", "JU.SB"], "J.adapter.readers.xml.XmlReader", ["java.io.BufferedInputStream", "java.util.Hashtable", "JU.Rdr", "J.adapter.smarter.AtomSetCollection", "$.Resolver", "J.api.Interface", "JU.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.atom = null;
+this.bond = null;
 this.parent = null;
 this.atts = null;
 this.keepChars = false;

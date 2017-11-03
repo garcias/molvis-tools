@@ -319,7 +319,7 @@ case 1073742328:
 case 1678381065:
 case 1086326788:
 case 1073742329:
-case 1073741916:
+case 1111490587:
 case 1086326789:
 case 1086324742:
 case 1094717454:
@@ -381,7 +381,7 @@ if (!haveParens) if (this.chk) {
 v = name;
 } else if (localVars == null || (v = JU.PT.getMapValueNoCase (localVars, name)) == null && allContext) {
 if (name.startsWith ("_")) {
-v = (name.equals ("_") ? this.vwr.ms.getAuxiliaryInfo (null) : name.equals ("_m") && this.vwr.am.cmi >= 0 ? this.vwr.ms.getModelAuxiliaryInfo (this.vwr.am.cmi) : null);
+v = (name.equals ("_") ? this.vwr.ms.getAuxiliaryInfo (null) : name.equals ("_m") ? this.vwr.getCurrentModelAuxInfo () : null);
 }if (v == null) v = this.getContextVariableAsVariable (name, false);
  else if (ptEq == 0) this.invArg ();
 }if (v == null) {
@@ -457,6 +457,7 @@ var refreshed = false;
 this.iToken = 1000;
 var ignoreSubset = (pcStart < 0);
 var isInMath = false;
+var bs;
 var nExpress = 0;
 var ac = this.vwr.ms.ac;
 var ptWithin = -10;
@@ -500,8 +501,12 @@ break;
 case 12290:
 rpn.addXBs (this.getAtomBitSet (value));
 break;
-case 6:
 case 7:
+bs = JS.SV.getBitSet (instruction, false);
+if (bs != null) {
+rpn.addXBs (bs);
+break;
+}case 6:
 rpn.addXBs (this.vwr.ms.getAtoms (1086324744, (instruction).asString ()));
 break;
 case 134219265:
@@ -522,7 +527,7 @@ break;
 case 4:
 var s = value;
 if (s.indexOf ("({") == 0) {
-var bs = JU.BS.unescape (s);
+bs = JU.BS.unescape (s);
 if (bs != null) {
 rpn.addXBs (bs);
 break;
@@ -582,9 +587,13 @@ break;
 case 1073742356:
 if (this.vwr.ms.mc != 1 || this.vwr.ms.haveBioModels) {
 var atomID = instruction.intValue;
-if (atomID > 0) rpn.addXBs (this.compareInt (1094713346, 268435860, atomID));
- else rpn.addXBs (this.getAtomBits (instruction.tok, value));
+if (atomID > 0) {
+bs = this.compareInt (1094713346, 268435860, atomID);
+if (atomID == 2) bs.or (this.compareInt (1086326789, 268435860, 20));
+rpn.addXBs (bs);
 } else {
+rpn.addXBs (this.getAtomBits (instruction.tok, value));
+}} else {
 rpn.addXBs ((this).lookupIdentifierValue ("_" + value));
 }break;
 case 2097155:
@@ -710,7 +719,7 @@ exp = (this.chk ?  new JU.BS () : this.getAtomBitSet (exp));
 }if (ret != null && !(Clazz.instanceOf (exp, JU.BS))) {
 ret[0] = exp;
 return null;
-}var bs = (Clazz.instanceOf (exp, JU.BS) ? exp :  new JU.BS ());
+}bs = (Clazz.instanceOf (exp, JU.BS) ? exp :  new JU.BS ());
 this.isBondSet = (Clazz.instanceOf (exp, JM.BondSet));
 if (!this.isBondSet && (bs = this.vwr.slm.excludeAtoms (bs, ignoreSubset)).length () > this.vwr.ms.ac) bs.clearAll ();
 if (this.tempStatement != null) {
@@ -850,7 +859,7 @@ var ac = this.vwr.ms.ac;
 var modelSet = this.vwr.ms;
 var atoms = modelSet.at;
 var propertyFloat = 0;
-this.vwr.autoCalculate (tokWhat);
+this.vwr.autoCalculate (tokWhat, null);
 var isProp = (tokWhat == 1715472409);
 if (!isProp && this.ptTemp == null) this.ptTemp =  new JU.P3 ();
 for (var i = ac; --i >= 0; ) {
@@ -1162,9 +1171,12 @@ params = (opValue)[1];
 bsAtom = JU.BS.newN (ac);
 tokenAtom = JS.SV.newV (10, bsAtom);
 break;
+case 1111490587:
+for (var j = fout.length; --j >= 0; ) fout[j] = NaN;
+
 case 1111490574:
 case 1111490575:
-this.vwr.autoCalculate (tok);
+this.vwr.autoCalculate (tok, tokenValue);
 break;
 case 1275069443:
 if (ptRef == null && planeRef == null) return  new JU.P3 ();
@@ -1224,7 +1236,7 @@ fv = (data == null ? 0 : data[i]);
 break;
 case 1275069443:
 if (planeRef != null) fv = JU.Measure.distanceToPlane (planeRef, atom);
- else fv = atom.distance (ptRef);
+ else fv = (atom !== ptRef || minmaxtype != 32 ? atom.distance (ptRef) : NaN);
 break;
 default:
 fv = atom.atomPropertyFloat (this.vwr, tok, this.ptTemp);
@@ -1770,7 +1782,7 @@ v = (sv.indexOf ("|") < 0 ? this.getAtomBitSet (sv) : sv);
 v = bs;
 }}i = this.iToken;
 } else if (this.chk) {
-v = null;
+v =  new JU.BS ();
 } else {
 if (this.tokAt (i) == 2) {
 v = this.vwr.ms.getAtoms (1094715393, Integer.$valueOf (this.st[i].intValue));
@@ -1793,7 +1805,7 @@ fixed[j] = JS.T.tv (2, (v).intValue (), v);
 fixed[j] = JS.T.tv (3, JS.ScriptParam.getFloatEncodedInt ("" + v), v);
 } else if (Clazz.instanceOf (v, String)) {
 if (!forceString && !isExpression) {
-if ((tok != 36867 || j > 1 && this.st[1].tok != 537022465) && JS.T.tokAttr (tok, 36864)) {
+if ((tok != 36867 || j > 1 && this.st[1].tok != 537022465 && !"labelfor".equalsIgnoreCase (this.st[1].value.toString ())) && JS.T.tokAttr (tok, 36864)) {
 v = this.getParameter (v, 1073742190, true);
 }if (Clazz.instanceOf (v, String)) {
 v = this.getStringObjectAsVariable (v);

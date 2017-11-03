@@ -1,7 +1,8 @@
-Clazz.declarePackage ("J.adapter.readers.quantum");
-Clazz.load (null, "J.adapter.readers.quantum.SpartanArchive", ["java.lang.Boolean", "$.Float", "java.util.Hashtable", "JU.AU", "$.Lst", "$.PT", "$.V3", "J.adapter.smarter.AtomSetCollectionReader", "$.Bond", "JU.Logger"], function () {
+Clazz.declarePackage ("J.adapter.readers.spartan");
+Clazz.load (null, "J.adapter.readers.spartan.SpartanArchive", ["java.lang.Boolean", "$.Float", "java.util.Hashtable", "JU.AU", "$.Lst", "$.PT", "$.V3", "J.adapter.smarter.AtomSetCollectionReader", "$.Bond", "JU.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.modelCount = 0;
+this.modelAtomCount = 0;
 this.ac = 0;
 this.bondData = null;
 this.moCount = 0;
@@ -11,16 +12,16 @@ this.gaussianCount = 0;
 this.endCheck = null;
 this.isSMOL = false;
 this.r = null;
-this.modelAtomCount = 0;
 this.line = null;
 Clazz.instantialize (this, arguments);
-}, J.adapter.readers.quantum, "SpartanArchive");
+}, J.adapter.readers.spartan, "SpartanArchive");
 Clazz.makeConstructor (c$, 
-function (r, bondData, endCheck) {
+function (r, bondData, endCheck, smolAtomCount) {
 this.initialize (r, bondData);
+this.modelAtomCount = smolAtomCount;
 this.endCheck = endCheck;
 this.isSMOL = (endCheck != null);
-}, "J.adapter.readers.quantum.BasisFunctionReader,~S,~S");
+}, "J.adapter.readers.quantum.BasisFunctionReader,~S,~S,~N");
 Clazz.defineMethod (c$, "initialize", 
  function (r, bondData) {
 this.r = r;
@@ -64,7 +65,7 @@ break;
 }this.readLine ();
 }
 if (haveMOData) this.r.finalizeMOData (this.r.moData);
-return this.ac;
+return this.modelAtomCount;
 }, "~S,~B,~N,~B");
 Clazz.defineMethod (c$, "readEnergy", 
  function () {

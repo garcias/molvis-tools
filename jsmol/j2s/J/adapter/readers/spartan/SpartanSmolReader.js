@@ -1,24 +1,25 @@
-Clazz.declarePackage ("J.adapter.readers.quantum");
-Clazz.load (["J.adapter.readers.quantum.SpartanInputReader"], "J.adapter.readers.quantum.SpartanSmolReader", ["java.lang.Boolean", "java.util.Hashtable", "JU.BC", "$.PT", "$.SB", "J.adapter.readers.quantum.SpartanArchive", "JU.Logger"], function () {
+Clazz.declarePackage ("J.adapter.readers.spartan");
+Clazz.load (["J.adapter.readers.spartan.SpartanInputReader"], "J.adapter.readers.spartan.SpartanSmolReader", ["java.lang.Boolean", "java.util.Hashtable", "JU.BC", "$.PT", "$.SB", "J.adapter.readers.spartan.SpartanArchive", "JU.Logger"], function () {
 c$ = Clazz.decorateAsClass (function () {
 this.iHaveModelStatement = false;
 this.isCompoundDocument = false;
 this.inputOnly = false;
 this.espCharges = false;
+this.natCharges = false;
 this.isInputFirst = false;
 this.iHaveNewDir = false;
-this.endCheck = "END Directory Entry ";
 this.title = null;
 this.spartanArchive = null;
 this.titles = null;
 this.haveCharges = false;
 Clazz.instantialize (this, arguments);
-}, J.adapter.readers.quantum, "SpartanSmolReader", J.adapter.readers.quantum.SpartanInputReader);
+}, J.adapter.readers.spartan, "SpartanSmolReader", J.adapter.readers.spartan.SpartanInputReader);
 Clazz.overrideMethod (c$, "initializeReader", 
 function () {
 this.isCompoundDocument = (this.rd ().indexOf ("Compound Document File Directory") >= 0);
 this.inputOnly = this.checkFilterKey ("INPUT");
-this.espCharges = !this.checkFilterKey ("MULLIKEN");
+this.natCharges = this.checkFilterKey ("NATCHAR");
+this.espCharges = !this.natCharges && !this.checkFilterKey ("MULLIKEN");
 });
 Clazz.overrideMethod (c$, "checkLine", 
 function () {
@@ -45,8 +46,9 @@ this.discardLinesUntilContains ("BEGIN Directory Entry M");
 this.discardLinesUntilContains ("#JMOL_MODEL");
 }this.checkLastModel ();
 return false;
-}if (!this.isInputFirst) this.asc.newAtomSet ();
-this.moData =  new java.util.Hashtable ();
+}if (!this.isInputFirst) {
+this.makeNewAtomSet ();
+}this.moData =  new java.util.Hashtable ();
 this.moData.put ("isNormalized", Boolean.TRUE);
 var isOK = false;
 if (modelNo == -2147483648 || this.titles == null) {
@@ -67,7 +69,7 @@ var lcline = this.line.toLowerCase ();
 if (lcline.endsWith ("input")) {
 if (!this.iHaveModelStatement) this.isInputFirst = true;
 if (this.isInputFirst) {
-this.asc.newAtomSet ();
+this.makeNewAtomSet ();
 }this.bondData = "";
 this.title = this.readInputRecords ();
 if (this.asc.errorMessage != null) {
@@ -95,6 +97,11 @@ return false;
 }return true;
 }if (this.line.indexOf ("5D shell") >= 0) this.moData.put ("calculationType", this.calculationType = this.line);
 return true;
+});
+Clazz.defineMethod (c$, "makeNewAtomSet", 
+ function () {
+if (this.asc.ac == 0) this.asc.removeCurrentAtomSet ();
+this.asc.newAtomSet ();
 });
 Clazz.overrideMethod (c$, "finalizeSubclassReader", 
 function () {
@@ -133,7 +140,7 @@ this.asc.setInfo ("fileHeader", header.toString ());
 });
 Clazz.defineMethod (c$, "readArchive", 
  function () {
-this.spartanArchive =  new J.adapter.readers.quantum.SpartanArchive (this, this.bondData, this.endCheck);
+this.spartanArchive =  new J.adapter.readers.spartan.SpartanArchive (this, this.bondData, "END Directory Entry ", 0);
 var modelName = this.readArchiveHeader ();
 if (modelName != null) this.modelAtomCount = this.spartanArchive.readArchive (this.line, false, this.asc.ac, false);
 return (this.constraints == null ? modelName : null);
@@ -141,14 +148,15 @@ return (this.constraints == null ? modelName : null);
 Clazz.defineMethod (c$, "setCharges", 
  function () {
 if (this.haveCharges || this.asc.ac == 0) return;
-this.haveCharges = (this.espCharges && this.asc.setAtomSetCollectionPartialCharges ("ESPCHARGES") || this.asc.setAtomSetCollectionPartialCharges ("MULCHARGES") || this.asc.setAtomSetCollectionPartialCharges ("Q1_CHARGES") || this.asc.setAtomSetCollectionPartialCharges ("ESPCHARGES"));
+this.haveCharges = (this.espCharges && this.asc.setAtomSetCollectionPartialCharges ("ESPCHARGES") || this.natCharges && this.asc.setAtomSetCollectionPartialCharges ("NATCHARGES") || this.asc.setAtomSetCollectionPartialCharges ("MULCHARGES") || this.asc.setAtomSetCollectionPartialCharges ("Q1_CHARGES") || this.asc.setAtomSetCollectionPartialCharges ("ESPCHARGES"));
 });
 Clazz.defineMethod (c$, "readProperties", 
  function () {
-if (this.spartanArchive == null) {
+if (this.modelAtomCount == 0) {
 this.rd ();
 return;
-}this.spartanArchive.readProperties ();
+}if (this.spartanArchive == null) this.spartanArchive =  new J.adapter.readers.spartan.SpartanArchive (this, this.bondData, "END Directory Entry ", this.modelAtomCount);
+this.spartanArchive.readProperties ();
 this.rd ();
 this.setCharges ();
 });
@@ -168,4 +176,6 @@ Clazz.defineMethod (c$, "setEnergy",
 function (value) {
 this.asc.setAtomSetName (this.constraints + (this.constraints.length == 0 ? "" : " ") + "Energy=" + value + " KJ");
 }, "~N");
+Clazz.defineStatics (c$,
+"endCheck", "END Directory Entry ");
 });

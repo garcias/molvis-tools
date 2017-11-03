@@ -126,19 +126,19 @@ this.next =  Clazz.newIntArray (1, 0);
 this.loadNote =  new JU.SB ();
 });
 Clazz.defineMethod (c$, "setup", 
-function (fullPath, htParams, reader) {
-this.setupASCR (fullPath, htParams, reader);
+function (fullPath, htParams, readerOrDocument) {
+this.setupASCR (fullPath, htParams, readerOrDocument);
 }, "~S,java.util.Map,~O");
 Clazz.defineMethod (c$, "setupASCR", 
-function (fullPath, htParams, reader) {
+function (fullPath, htParams, readerOrDocument) {
 if (fullPath == null) return;
 this.debugging = JU.Logger.debugging;
 this.htParams = htParams;
 this.filePath = "" + htParams.get ("fullPathName");
 var i = this.filePath.lastIndexOf ('/');
 this.fileName = this.filePath.substring (i + 1);
-if (Clazz.instanceOf (reader, java.io.BufferedReader)) this.reader = reader;
- else if (Clazz.instanceOf (reader, javajs.api.GenericBinaryDocument)) this.binaryDoc = reader;
+if (Clazz.instanceOf (readerOrDocument, java.io.BufferedReader)) this.reader = readerOrDocument;
+ else if (Clazz.instanceOf (readerOrDocument, javajs.api.GenericBinaryDocument)) this.binaryDoc = readerOrDocument;
 }, "~S,java.util.Map,~O");
 Clazz.defineMethod (c$, "readData", 
 function () {
@@ -548,7 +548,8 @@ if (!this.iHaveUnitCell) return null;
 if (this.symmetry == null) {
 this.getNewSymmetry ().setUnitCell (this.unitCellParams, false);
 this.checkUnitCellOffset ();
-}return this.symmetry;
+}if (this.symmetry == null) this.iHaveUnitCell = false;
+return this.symmetry;
 });
 Clazz.defineMethod (c$, "checkUnitCellOffset", 
  function () {
@@ -560,7 +561,7 @@ if (this.unitCellOffsetFractional) this.symmetry.toCartesian (this.fileOffset, f
 }});
 Clazz.defineMethod (c$, "fractionalizeCoordinates", 
 function (toFrac) {
-this.getSymmetry ();
+if (this.getSymmetry () == null) return;
 var a = this.asc.atoms;
 if (toFrac) for (var i = this.asc.ac; --i >= 0; ) this.symmetry.toFractional (a[i], false);
 

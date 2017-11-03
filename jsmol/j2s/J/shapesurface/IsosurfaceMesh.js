@@ -167,6 +167,11 @@ this.jvxlData.contourColixes[i] = (vContours[i].get (3))[0];
 }
 return this.jvxlData.vContours = vContours;
 });
+Clazz.defineMethod (c$, "getPmeshData", 
+function (isBinary) {
+var mw = J.api.Interface.getInterface ("J.shapesurface.PMeshWriter", this.vwr, "script");
+return mw.write (this, isBinary);
+}, "~B");
 c$.get3dContour = Clazz.defineMethod (c$, "get3dContour", 
  function (m, v, value, colix) {
 var bsContour = JU.BS.newN (m.pc);

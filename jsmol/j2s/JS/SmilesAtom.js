@@ -532,6 +532,25 @@ function (property) {
 if (property === "property_atomclass") return this.atomClass;
 return NaN;
 }, "~S");
+Clazz.overrideMethod (c$, "getMass", 
+function () {
+return this.atomicMass;
+});
+Clazz.overrideMethod (c$, "getCIPChirality", 
+function (doCalculate) {
+return "";
+}, "~B");
+Clazz.overrideMethod (c$, "setCIPChirality", 
+function (c) {
+}, "~N");
+Clazz.overrideMethod (c$, "getCIPChiralityCode", 
+function () {
+return 0;
+});
+Clazz.overrideMethod (c$, "getXYZ", 
+function () {
+return this;
+});
 Clazz.defineStatics (c$,
 "UNBRACKETED_SET", "B, C, N, O, P, S, F, Cl, Br, I, *,");
 });

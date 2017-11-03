@@ -222,7 +222,7 @@ if (token == null) return false;
 if (this.logMessages) JU.Logger.debug ("addTokenToPostfix" + token);
 if (token.tok == 268435520 && (this.lastToken.tok == 1073742336 || this.lastToken.tok == 1073742337)) {
 var ipt = this.ltokenPostfix.size () - 1;
-this.ltokenPostfix.remove (ipt);
+this.ltokenPostfix.removeItemAt (ipt);
 this.ltokenPostfix.addLast (JS.T.tokenRightParen);
 var pcount = 0;
 var tok;
@@ -382,7 +382,7 @@ this.addNextToken ();
 if (isHash) {
 isImplicitExpression = false;
 this.returnToken ();
-this.ltokenPostfix.remove (this.ltokenPostfix.size () - 1);
+this.ltokenPostfix.removeItemAt (this.ltokenPostfix.size () - 1);
 this.addNextToken ();
 var nBrace = 1;
 while (nBrace != 0) {
@@ -476,7 +476,7 @@ break;
 if (isWithin && distance == 3.4028235E38) switch (tok0) {
 case 12290:
 break;
-case 1073741916:
+case 1111490587:
 case 1073742128:
 case 134218756:
 case 134218757:
@@ -506,7 +506,7 @@ case 1073742328:
 allowComma = false;
 case 1086326785:
 case 1086326786:
-case 1073741864:
+case 1073741863:
 case 1678381065:
 case 1086326788:
 case 1073742329:

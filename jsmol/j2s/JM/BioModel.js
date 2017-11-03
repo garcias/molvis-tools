@@ -250,4 +250,8 @@ if ((bond.order & 28672) != 0 && am[bond.atom1.mi].trajectoryBaseIndex == this.m
 if (bsDelete.nextSetBit (0) >= 0) this.ms.deleteBonds (bsDelete, false);
 this.getRasmolHydrogenBonds (bs, bs, null, false, 2147483647, false, null, dsspVersion);
 }, "JU.BS,~N");
+Clazz.defineMethod (c$, "getAtomicDSSRData", 
+function (dssrData, dataType) {
+if (this.auxiliaryInfo.containsKey ("dssr")) this.vwr.getAnnotationParser (true).getAtomicDSSRData (this.ms, this.modelIndex, dssrData, dataType);
+}, "~A,~S");
 });
